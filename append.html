@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+        <script  type="text/javascript" src="/dist/js/jquery.min.js"></script>
+        <script  type="text/javascript" src="/dist/js/d3.js"></script>
+        <link href="/dist/css/Molecule.css" rel="stylesheet">
+        <script  type="text/javascript" src="/dist/js/Molecule.js"></script>
+  
+</head>
+<body>
+
+        <div id="container" style="border:1px solid black; width:1042px; height:500px; overflow: hidden;"></div>
+      
+</body>
+<script  type="text/javascript">
+    
+var options = {
+    domElement: "#container",
+    uniqueId: 1,
+    width: 1042, 
+    height: 500,
+    borderThickness: 1,
+    borderColor: "#ffffff",
+    background: "#ffffff",
+    charge: -1000,
+    friction: 0.9,
+    alpha: 0.1,
+    theta: 0.8,
+    linkStrength: 1,
+    gravity: 0.1,
+    maxAtomRadius: 6,
+    colorScheme:["#2AA9CC", "#FCF78A"],
+    bondThickness: 1,
+    bondColor: "#000000",
+    atomBorderThickness: 1,
+    atomBorderColor: "#000000",
+    atomTextColor: "#000000",
+    atomSizeBasis: "Atomic Radius",
+    boundingBox: true,
+    borderRadiusX: 5,
+    borderRadiusY: 5,
+    detailedTooltips: false
+};
+
+
+var data = {};
+$.getJSON("ti_many.json", function(json){
+    nodes = [];
+    links = [];
+    tmpNodeAtom = [];
+    for(idx in json.nodes){
+        if(idx > 50) break;
+        node = {};
+        node.id = Number(idx);
+        node.atom = json.nodes[idx].id;
+        tmpNodeAtom.push(node.atom);
+        node.desc = json.nodes[idx].name;
+        if(idx == "0"){ 
+            node.size = 15;
+            node.fillColor = "#453ae8";
+            node.img= "http://marvel-force-chart.surge.sh/marvel_force_chart_img/top_hulk.png";
+        }else if (json.nodes[idx].hasOwnProperty("pid")){
+            node.size = 13;
+            node.fillColor = "#fc0000";
+            node.img= "http://marvel-force-chart.surge.sh/marvel_force_chart_img/top_captainmarvel.png";
+        }else{
+            node.size = 10;
+            node.fillColor = "#848383";
+            node.img= "http://marvel-force-chart.surge.sh/marvel_force_chart_img/top_spiderman.png";
+        }
+
+        
+        nodes.push(node);
+    }
+    for(idx in json.links){
+        if(idx > 100) break;
+        link = {};
+        link.source = tmpNodeAtom.indexOf(json.links[idx].from);
+        link.target = tmpNodeAtom.indexOf(json.links[idx].to);
+        link.bond = 1;
+        
+        links.push(link);
+    }
+
+    data.nodes = nodes;
+    data.links = links;
+ 
+    var molecule = new Molecule(data,options);
+    molecule.render();
+
+});
+
+ 
+</script>
+</html>

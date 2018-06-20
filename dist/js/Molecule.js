@@ -85,13 +85,11 @@ function Molecule(graph, options) {
 
     var colorScale = d3.scale.ordinal().range(this.colorScheme); // The colorScale to use to color same atoms alike but different atoms in different colors.
     var radiusScale = d3.scale.sqrt().range([0, this.maxAtomRadius]); // The radiusScale
-
     var emptyContainerContents = function() {
         $(parent.domElement).empty(); // Clear the DOM and redraw the svg molecule every time.
     }
 
     var drawContainerContents = function() {
-
         parent.svg = d3.select(parent.domElement).append("svg")
             .attr("viewBox", "0 0 " + parent.width + " " + parent.height)
             .attr("preserveAspectRatio", "xMinYMid")
@@ -100,23 +98,20 @@ function Molecule(graph, options) {
             .attr("height", parent.height)
             .style("background-color", parent.background);
 
-
-
         // This aspect of code takes care of the Responsive nature of the div.
         var aspect = parent.width / parent.height;
         $(window).on("resize", function() {
             var targetWidth = $(parent.domElement).width();
-
             // Otherwise the default settings of width and height will be compromised.        
-            if (targetWidth > parent.width) {
+            if (targetWidth > parent.width || targetWidth == "-2" || targetWidth == "0" || parent.uniqueId == 1) {
                 return;
-            }
-
+            }  
             d3.select(".svg" + parent.uniqueId)
                 .attr("width", targetWidth)
                 .attr("height", Math.round(targetWidth / aspect));
         }).trigger("resize");
 
+        
         var borderPath = parent.svg.append("rect")
             .attr("class","svgBorder")
             .attr("x", 0)
@@ -128,7 +123,6 @@ function Molecule(graph, options) {
             .style("stroke", parent.borderColor)
             .style("fill", "none")
             .style("stroke-width", parent.borderThickness + "px");
-
     }
 
     var drawAtoms = function() {
@@ -140,7 +134,7 @@ function Molecule(graph, options) {
             .append("g")
             .attr("class", "node")
             .call(parent.force.drag);
-
+        
         nodeg.append("circle")
             .attr("class", "atoms")
             .style("stroke", parent.atomBorderColor)
@@ -149,8 +143,20 @@ function Molecule(graph, options) {
                 return radiusScale(d.size);
             })
             .style("fill", function(d) {
-                return colorScale(d.atom);
+                if(d.hasOwnProperty("fillColor")){
+                    return d.fillColor;
+                }else{
+                    return colorScale(d.atom);
+                }
             })
+        
+        //image append
+        nodeg.append("svg:image")
+            .attr("xlink:href",  function(d) { return d.img;})
+            .attr("x", function(d) { return -25;})
+            .attr("y", function(d) { return -25;})
+            .attr("height", 50)
+            .attr("width", 50);
 
         nodeg.append("text")
             .attr("dy", ".35em")
@@ -706,7 +712,7 @@ function Molecule(graph, options) {
             .on('mouseover', function(d) {
 
                 var rows = "";
-                rows += "<tr><td>" + "Node Id" + "</td><td>" + d.id + "</td></tr>";
+                rows += "<tr><td>" + d.desc + "</td></tr>";
                 
                 if(parent.detailedTooltips){
                     Object.keys(Elements[d.atom]).forEach(function(key) {
@@ -856,8 +862,7 @@ function Molecule(graph, options) {
             if($(parent.domElement + " .svgBorder").hasClass("selectedSVG")){
                     $(parent.domElement + " .svgBorder").removeClass("selectedSVG");
                     $(parent.domElement).draggable({disabled: false});
-            }
-            else{
+            }else{
                     d3.selectAll(".svgBorder").classed("selectedSVG", false);
                     $("#container").children().draggable({disabled: false});
 
@@ -872,6 +877,10 @@ function Molecule(graph, options) {
             //    var y = coordinates[1];
             //    console.log(x,y);
         });
+        // ZOOM 
+        parent.svg.call(d3.behavior.zoom().on("zoom", function () {
+            parent.svg.attr("transform", "translate(0,0)" + " scale(" + d3.event.scale + ")")
+          }));
     }
 
     var noExistingLink = function(source_id,target_id){

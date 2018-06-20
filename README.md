@@ -1,3 +1,10 @@
+# Update Function
+* Zoom
+* image bind
+
+## reference
+* [image bind](http://bl.ocks.org/eesur/be2abfb3155a38be4de4)
+
 # d3-molecule
 
 **d3-molecule** is an open-source library for learning Chemical Bonding in an interactive way.
