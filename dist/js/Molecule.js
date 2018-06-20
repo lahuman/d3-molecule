@@ -159,6 +159,7 @@ function Molecule(graph, options) {
             .attr("width", 50);
 
         nodeg.append("text")
+            .attr('y', function(d) {return +30;})
             .attr("dy", ".35em")
             .attr("class", "atomsText")
             .style("font-size", "0.85em")
