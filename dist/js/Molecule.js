@@ -73,7 +73,7 @@ function Molecule(graph, options) {
     this.detailedTooltips = options.detailedTooltips; // Border radius y component
 
     var parent = this;
-
+    parent.isRender = true;
     // to ensure new nodes added after some nodes removed don't get duplicate ids.
     this.maxNodeId = d3.max(this.graph.nodes, function(d) {
         return d.id
@@ -133,7 +133,11 @@ function Molecule(graph, options) {
         var nodeg = parent.node.enter()
             .append("g")
             .attr("class", "node")
-            .call(parent.force.drag);
+            .call(parent.force.drag)
+            .on('click', function(){
+                //TODO : will be change event listener 
+                window.addNode(this.__data__);
+            });
         
         nodeg.append("circle")
             .attr("class", "atoms")
@@ -276,6 +280,7 @@ function Molecule(graph, options) {
     };
 
     var tick = function() {
+        parent.isRender = true;
         parent.node.attr("transform", function(d) {
 
             // If false, then let the farther atoms go out of the viewport
@@ -638,6 +643,7 @@ function Molecule(graph, options) {
 
     function callback() {
         // Animation has completed. Do Something If you wish to.
+        parent.isRender = false;
     }
 
     var configureForces = function() {
@@ -709,8 +715,8 @@ function Molecule(graph, options) {
         node_tooltip.append('div')
             .attr('class', 'value');
 
-        parent.svg.selectAll(".atoms")
-            .on('mouseover', function(d) {
+        parent.svg.selectAll("image")
+            .on('mouseenter', function(d) {
 
                 var rows = "";
                 rows += "<tr><td>" + d.desc + "</td></tr>";
@@ -728,10 +734,10 @@ function Molecule(graph, options) {
 
             })
             .on('mousemove', function(d) {
-                node_tooltip.style('top', (d3.event.layerY + 10) + 'px')
-                    .style('left', (d3.event.layerX - 25) + 'px');
+                node_tooltip.style('top', (d3.event.layerY + 30) + 'px')
+                    .style('left', (d3.event.layerX - 40) + 'px');
             })
-            .on('mouseout', function(d) {
+            .on('mouseleave', function(d) {
                 node_tooltip.style('display', 'none');
                 node_tooltip.style('opacity', 0);
             });
@@ -798,7 +804,7 @@ function Molecule(graph, options) {
             .attr('class', 'value');
 
         parent.svg.selectAll(".link")
-            .on('mouseover', function(d) {
+            .on('mouseenter', function(d) {
 
                 var rows = "";
                 rows += "<tr><td>" + "Source Id" + "</td><td>" + d.source.id + "</td></tr>";
@@ -813,10 +819,10 @@ function Molecule(graph, options) {
 
             })
             .on('mousemove', function(d) {
-                link_tooltip.style('top', (d3.event.layerY + 10) + 'px')
-                    .style('left', (d3.event.layerX - 25) + 'px');
+                link_tooltip.style('top', (d3.event.layerY + 30) + 'px')
+                    .style('left', (d3.event.layerX - 40) + 'px');
             })
-            .on('mouseout', function(d) {
+            .on('mouseleave', function(d) {
                 link_tooltip.style('display', 'none');
                 link_tooltip.style('opacity', 0);
             });
@@ -842,7 +848,9 @@ function Molecule(graph, options) {
                 render();
             });
     }
-
+    var isRendering = function() {
+        return parent.isRender;
+    }
     // Use it for Rendering the molecule in the window / Refreshing it
     var render = function() {
         emptyContainerContents();
@@ -881,7 +889,8 @@ function Molecule(graph, options) {
         // ZOOM 
         parent.svg.call(d3.behavior.zoom().on("zoom", function () {
             parent.svg.attr("transform", "translate(0,0)" + " scale(" + d3.event.scale + ")")
-          }));
+        }));
+        
     }
 
     var noExistingLink = function(source_id,target_id){
@@ -920,14 +929,18 @@ function Molecule(graph, options) {
     };
 
     // Add and remove Elements on the graph object
-    var addNode = function(atom, size, chargeString) {
+    var addNode = function(atom, size, chargeString, desc, fillColor, img) {
         parent.maxNodeId += 1;
         parent.graph.nodes.push({
             "id": parent.maxNodeId,
             "atom": atom,
             "size": size,
-            "charge":chargeString
+            "charge":chargeString,
+            "desc": desc,
+            "fillColor": fillColor,
+            "img": img
         });
+        return parent.maxNodeId;
     };
 
     var removeNode = function(id) {
@@ -1080,7 +1093,8 @@ function Molecule(graph, options) {
         configureForces: configureForces,
         configureTooltips: configureTooltips,
         drawContainerContents: drawContainerContents,
-        emptyContainerContents: emptyContainerContents
+        emptyContainerContents: emptyContainerContents,
+        isRendering: isRendering
     }
 }
 

@@ -8,7 +8,7 @@
   
 </head>
 <body>
-
+        <button onclick="addNode()" >ADD NODE</button>
         <div id="container" style="border:1px solid black; width:1042px; height:500px; overflow: hidden;"></div>
       
 </body>
@@ -27,7 +27,7 @@ var options = {
     alpha: 0.1,
     theta: 0.8,
     linkStrength: 1,
-    gravity: 0.1,
+    gravity: 0.2,
     maxAtomRadius: 6,
     colorScheme:["#2AA9CC", "#FCF78A"],
     bondThickness: 1,
@@ -44,7 +44,8 @@ var options = {
 
 
 var data = {};
-$.getJSON("ti_many.json", function(json){
+var molecule;
+$.getJSON("ti.json", function(json){
     nodes = [];
     links = [];
     tmpNodeAtom = [];
@@ -85,11 +86,22 @@ $.getJSON("ti_many.json", function(json){
     data.nodes = nodes;
     data.links = links;
  
-    var molecule = new Molecule(data,options);
+    molecule = new Molecule(data,options);
     molecule.render();
+    
 
 });
 
+window.addNode = function(source_node){
+    if(molecule.isRendering()) return;
+    var node_id = molecule.addNode("HELLO", 15, "", "HELLO", "#848383", "http://marvel-force-chart.surge.sh/marvel_force_chart_img/top_hulk.png");
+    var node_id2 = molecule.addNode("HELLO", 15, "", "HELLO", "#848383", "http://marvel-force-chart.surge.sh/marvel_force_chart_img/top_hulk.png");
+    molecule.addLink(source_node.id, node_id, 1);
+    molecule.addLink(source_node.id, node_id2, 1);
+    
+    molecule.render();
+    
+}
  
 </script>
 </html>
