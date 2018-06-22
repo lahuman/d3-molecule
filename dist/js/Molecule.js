@@ -167,14 +167,19 @@ function Molecule(graph, options) {
             .attr("dy", ".35em")
             .attr("class", "atomsText")
             .style("white-space", "pre")
+            .style("word-break", "break-word")
             .style("font-size", "0.85em")
             .attr("text-anchor", "middle")
             .attr("fill", parent.atomTextColor)
             .style("pointer-events", "none")
             .style("color", "#222")
             .text(function(d) {
-                return d.desc.replace(/<br>/gi,"\n");
+                return d.desc;
             });
+
+        //enter process
+        nodeg.selectAll("text").call(textWrap);
+
 
         nodeg.append("text")
             .attr("dy", "-.40em")
@@ -189,6 +194,28 @@ function Molecule(graph, options) {
             });
 
     }
+
+    function textWrap(text) {
+        text.each(function() {
+          var text = d3.select(this),
+              words = text.text().split(/<br>/).reverse(),
+              word,
+              line = [],
+              lineNumber = 0,
+              lineHeight = 1.1, // ems
+              y = text.attr("y"),
+              dy = parseFloat(text.attr("dy")),
+              tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
+          while (word = words.pop()) {
+            line.push(word);
+            tspan.text(line.join(" "));
+            line.pop();
+            tspan.text(line.join(" "));
+            line = [word];
+            tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+          }
+        });
+      }
 
     var thetaXScale = d3.scale.linear()
         .range([0.1, this.bondThickness])

@@ -45,17 +45,23 @@ var options = {
 
 var data = {};
 var molecule;
+
 $.getJSON("ti.json", function(json){
     nodes = [];
     links = [];
     tmpNodeAtom = [];
+
     for(idx in json.nodes){
         if(idx > 50) break;
         node = {};
         node.id = Number(idx);
         node.atom = json.nodes[idx].id;
-        tmpNodeAtom.push(node.atom);
         node.desc = json.nodes[idx].name;
+
+        //for link
+        tmpNodeAtom.push(node.atom);
+       
+
         if(idx == "0"){ 
             node.size = 15;
             node.fillColor = "#453ae8";
@@ -99,8 +105,17 @@ window.addNode = function(source_node){
     molecule.addLink(source_node.id, node_id, 1);
     molecule.addLink(source_node.id, node_id2, 1);
     
-    molecule.render();
-    
+    molecule.render();   
+}
+ 
+window.overItem = function(d){
+    var rows = "<tr><td>값: </td><td>"  + d.atom + "</td></tr>";
+    return "<table padding:2px;'><tbody>" + rows + "</tbody></table>";
+}
+
+window.overLink = function(d){
+    var rows = "<tr><td>"  + d.source.atom + "&nbsp;<font size=4>↔</font>&nbsp;" + d.target.atom + "</td></tr>";
+    return "<table padding:2px;'><tbody>" + rows + "</tbody></table>";
 }
  
 </script>
