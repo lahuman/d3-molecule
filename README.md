@@ -1,6 +1,67 @@
 # Update Function
 * Zoom
-* image bind
+* Image Bind
+* Add Node
+* Over Render
+
+## Zoom
+
+Use double-click and mouse scrolling.
+
+## Image Bind
+
+The node object has an image URL.
+The object key is img.
+
+~~~
+{
+  "nodes": [
+    {
+      "id": 0,
+      "atom": "test",
+      "desc": "TEST",
+      "size": 15,
+      "fillColor": "#3357ff",
+      "img": "https://lahuman.github.io/assets/img/logo.png"
+    }]
+}
+~~~
+
+## Add Node
+
+The creation of the function is window.addNode.
+This method calls render() the last time.
+
+~~~
+window.addNode = function(source_node){
+    if(molecule.isRendering()) return;
+    var node_id = molecule.addNode("HELLO", 15, "", "HELLO", "#848383", "http://marvel-force-chart.surge.sh/marvel_force_chart_img/top_hulk.png");
+    var node_id2 = molecule.addNode("HELLO", 15, "", "HELLO", "#848383", "http://marvel-force-chart.surge.sh/marvel_force_chart_img/top_hulk.png");
+    molecule.addLink(source_node.id, node_id, 1);
+    molecule.addLink(source_node.id, node_id2, 1);
+    
+    molecule.render();   
+}
+~~~
+
+## Over Render
+
+The creation of the function is window.overItem and window.overLink.
+
+Mouse Over the object then showing table.
+
+~~~
+window.overItem = function(d){
+    var rows = "<tr><td>값: </td><td>"  + d.atom + "</td></tr>";
+    return "<table padding:2px;'><tbody>" + rows + "</tbody></table>";
+}
+
+window.overLink = function(d){
+    var rows = "<tr><td>"  + d.source.atom + "&nbsp;<font size=4>↔</font>&nbsp;" + d.target.atom + "</td></tr>";
+    return "<table padding:2px;'><tbody>" + rows + "</tbody></table>";
+}
+~~~
+
 
 ## reference
 * [image bind](http://bl.ocks.org/eesur/be2abfb3155a38be4de4)

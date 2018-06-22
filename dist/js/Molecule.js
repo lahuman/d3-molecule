@@ -135,8 +135,8 @@ function Molecule(graph, options) {
             .attr("class", "node")
             .call(parent.force.drag)
             .on('click', function(){
-                //TODO : will be change event listener 
-                window.addNode(this.__data__);
+                if (typeof window.addNode === "function")
+                    window.addNode(this.__data__);
             });
         
         nodeg.append("circle")
@@ -166,12 +166,14 @@ function Molecule(graph, options) {
             .attr('y', function(d) {return +30;})
             .attr("dy", ".35em")
             .attr("class", "atomsText")
+            .style("white-space", "pre")
             .style("font-size", "0.85em")
             .attr("text-anchor", "middle")
             .attr("fill", parent.atomTextColor)
             .style("pointer-events", "none")
+            .style("color", "#222")
             .text(function(d) {
-                return d.atom;
+                return d.desc.replace(/<br>/gi,"\n");
             });
 
         nodeg.append("text")
@@ -726,7 +728,10 @@ function Molecule(graph, options) {
                         rows += "<tr><td>" + key + "</td><td>" + Elements[d.atom][key] + "</td></tr>";
                     })
                 }
-                var html = "<table><tbody>" + rows + "</tbody></table>";
+                var html = "<table  padding:2px;'><tbody>" + rows + "</tbody></table>";
+                if (typeof window.overItem === "function"){
+                    html = window.overItem(d);
+                }
                 node_tooltip.select('.value').html(html);
 
                 node_tooltip.style('display', 'block');
@@ -805,12 +810,14 @@ function Molecule(graph, options) {
 
         parent.svg.selectAll(".link")
             .on('mouseenter', function(d) {
-
+                
                 var rows = "";
-                rows += "<tr><td>" + "Source Id" + "</td><td>" + d.source.id + "</td></tr>";
-                rows += "<tr><td>" + "Target Id" + "</td><td>" + d.target.id + "</td></tr>";
-                rows += "<tr><td>" + "Bond Type" + "</td><td>" + d.bond + "</td></tr>";
-                var html = "<table><tbody>" + rows + "</tbody></table>";
+                
+                rows += "<tr><td>"  + d.source.desc + "&nbsp;<font size=4>→</font>&nbsp;" + d.target.desc + "</td></tr>";
+                var html = "<table padding:2px;'><tbody>" + rows + "</tbody></table>";
+                if (typeof window.overLink === "function"){
+                    html = window.overLink(d);
+                }
 
                 link_tooltip.select('.value').html(html);
 
