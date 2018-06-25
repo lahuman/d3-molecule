@@ -88,7 +88,12 @@ function Molecule(graph, options) {
     var emptyContainerContents = function() {
         $(parent.domElement).empty(); // Clear the DOM and redraw the svg molecule every time.
     }
-
+    var xScale = d3.scale.linear().domain([0, this.width]).range([0, this.width]);
+    var yScale = d3.scale.linear().domain([0, this.height]).range([0, this.height]);
+    var zoomer = d3.behavior.zoom().x(xScale).y(yScale).scaleExtent([0.1, 8]).on("zoom", zoom);
+    function zoom() {
+        tick(); 
+    };
     var drawContainerContents = function() {
         parent.svg = d3.select(parent.domElement).append("svg")
             .attr("viewBox", "0 0 " + parent.width + " " + parent.height)
@@ -97,6 +102,8 @@ function Molecule(graph, options) {
             .attr("width", parent.width)
             .attr("height", parent.height)
             .style("background-color", parent.background);
+        
+        parent.svg.call(zoomer);
 
         // This aspect of code takes care of the Responsive nature of the div.
         var aspect = parent.width / parent.height;
@@ -135,8 +142,8 @@ function Molecule(graph, options) {
             .attr("class", "node")
             .call(parent.force.drag)
             .on('click', function(){
-                if (typeof window.addNode === "function")
-                    window.addNode(this.__data__);
+                //TODO : will be change event listener 
+                window.addNode(this.__data__);
             });
         
         nodeg.append("circle")
@@ -163,11 +170,10 @@ function Molecule(graph, options) {
             .attr("width", 50);
 
         nodeg.append("text")
-            .attr('y', function(d) {return +30;})
+            .attr('y', function(d) {return +10;})
             .attr("dy", ".35em")
             .attr("class", "atomsText")
             .style("white-space", "pre")
-            .style("word-break", "break-word")
             .style("font-size", "0.85em")
             .attr("text-anchor", "middle")
             .attr("fill", parent.atomTextColor)
@@ -176,10 +182,8 @@ function Molecule(graph, options) {
             .text(function(d) {
                 return d.desc;
             });
-
         //enter process
         nodeg.selectAll("text").call(textWrap);
-
 
         nodeg.append("text")
             .attr("dy", "-.40em")
@@ -195,24 +199,18 @@ function Molecule(graph, options) {
 
     }
 
-    function textWrap(text) {
+
+    var textWrap = function(text) {
         text.each(function() {
           var text = d3.select(this),
               words = text.text().split(/<br>/).reverse(),
-              word,
-              line = [],
               lineNumber = 0,
-              lineHeight = 1.1, // ems
+              lineHeight = 1.1, 
               y = text.attr("y"),
-              dy = parseFloat(text.attr("dy")),
-              tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
+              dy = parseFloat(text.attr("dy"));
+              text.text(null);
           while (word = words.pop()) {
-            line.push(word);
-            tspan.text(line.join(" "));
-            line.pop();
-            tspan.text(line.join(" "));
-            line = [word];
-            tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+              tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
           }
         });
       }
@@ -308,6 +306,8 @@ function Molecule(graph, options) {
       return new Vector2(ratio*this.X, ratio*this.Y);
     };
 
+ 
+
     var tick = function() {
         parent.isRender = true;
         parent.node.attr("transform", function(d) {
@@ -319,21 +319,21 @@ function Molecule(graph, options) {
                 d.y = Math.max(radiusScale(d.size), Math.min(parent.height - radiusScale(d.size), d.y));
             }
 
-            return "translate(" + d.x + "," + d.y + ")";
+            return "translate(" + xScale(d.x) + "," + yScale(d.y) + ")";
         });
 
         parent.link.selectAll("line")
             .attr("x1", function(d) {
-                return d.source.x;
+                return xScale(d.source.x);
             })
             .attr("y1", function(d) {
-                return d.source.y;
+                return yScale(d.source.y);
             })
             .attr("x2", function(d) {
-                return d.target.x;
+                return xScale(d.target.x);
             })
             .attr("y2", function(d) {
-                return d.target.y;
+                return yScale(d.target.y);
             });
 
         var arc_bond = parent.link.filter(function(d) {
@@ -766,7 +766,7 @@ function Molecule(graph, options) {
 
             })
             .on('mousemove', function(d) {
-                node_tooltip.style('top', (d3.event.layerY + 30) + 'px')
+                node_tooltip.style('top', (d3.event.layerY + 40) + 'px')
                     .style('left', (d3.event.layerX - 40) + 'px');
             })
             .on('mouseleave', function(d) {
@@ -853,7 +853,7 @@ function Molecule(graph, options) {
 
             })
             .on('mousemove', function(d) {
-                link_tooltip.style('top', (d3.event.layerY + 30) + 'px')
+                link_tooltip.style('top', (d3.event.layerY + 40) + 'px')
                     .style('left', (d3.event.layerX - 40) + 'px');
             })
             .on('mouseleave', function(d) {
@@ -863,24 +863,7 @@ function Molecule(graph, options) {
 
         var linkHandler = singleDoubleClickHandler();
         parent.svg.selectAll('.link').call(linkHandler);
-        linkHandler
-            .on('click', function(el) {
-                var selection = el.srcElement;
-                console.log("click, data: ");
-                var d = d3.select(selection).data()[0];
-                console.log(d.source.id + " - " + d.target.id + " selected");
-                removeLink(d.source.id, d.target.id);
-                addLink(d.source.id, d.target.id, d.bond == 10 ? 1 : d.bond + 1);
-                render();
-            })
-            .on('dblclick', function(el) {
-                var selection = el.srcElement;
-                console.log("dblclick, data: ");
-                var d = d3.select(selection).data()[0];
-                console.log(d.source.id + " - " + d.target.id + " selected");
-                removeLink(d.source.id, d.target.id);
-                render();
-            });
+       
     }
     var isRendering = function() {
         return parent.isRender;
@@ -921,9 +904,9 @@ function Molecule(graph, options) {
             //    console.log(x,y);
         });
         // ZOOM 
-        parent.svg.call(d3.behavior.zoom().on("zoom", function () {
-            parent.svg.attr("transform", "translate(0,0)" + " scale(" + d3.event.scale + ")")
-        }));
+        // parent.svg.call(d3.behavior.zoom().on("zoom", function () {
+        //     parent.svg.attr("transform", "translate(0,0)" + " scale(" + d3.event.scale + ")")
+        // }));
         
     }
 
